@@ -23,15 +23,9 @@ I initially used ps aux | grep root, but this also matched processes containing 
 
 I then used ps -u root to filter specifically for processes owned by the root user.
 
-Security takeaway: Reviewing process ownership can help identify programs running with elevated privileges. Search results should be verified because simple text searches can produce unrelated matches.## Finding 4: Network Service Inspection
+Security takeaway: Reviewing process ownership can help identify programs running with elevated privileges. Search results should be verified because simple text searches can produce unrelated matches.
 
-I used ss -tuln to inspect listening network ports.
-
-The scan showed UDP port 68 listening on 0.0.0.0.
-
-I then used ps aux | grep dhclient and identified the DHCP client process running as root on the eth0 network interface.
-
-Security takeaway: Network ports should be correlated with running processes to understand why a service is listening and whether it is expected.## Finding 4: Network Service Inspection
+## Finding 4: Network Service Inspection
 
 I used ss -tuln to inspect listening network ports.
 
