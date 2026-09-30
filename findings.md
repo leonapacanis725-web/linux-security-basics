@@ -34,3 +34,21 @@ The scan showed UDP port 68 listening on 0.0.0.0.
 I then used ps aux | grep dhclient and identified the DHCP client process running as root on the eth0 network interface.
 
 Security takeaway: Network ports should be correlated with running processes to understand why a service is listening and whether it is expected.
+
+## User and Privilege Analysis
+
+I used the `id` command to examine my user account and group memberships. My account belongs to the `sudo` group, which means it can potentially execute commands with elevated privileges. This demonstrates why privileged accounts should follow the principle of least privilege.
+
+## Root Process Analysis
+
+I examined processes running with root privileges. I learned that searching with `grep root` can produce false or unrelated matches because it searches the entire command text. Using `ps -U root -u root` provided a cleaner list of processes actually owned by root.
+
+The root-owned processes observed included system services such as `systemd`, `systemd-journald`, `systemd-udevd`, `systemd-logind`, `dhclient`, and `agetty`.
+
+## Network Service Analysis
+
+I used `ss -tuln` to inspect listening network sockets and found UDP port 68. I then used `sudo ss -tulpn` to identify the associated process.
+
+The output showed that UDP port 68 was associated with `dhclient` (PID 110). Earlier process enumeration also showed that PID 110 was running as root. This demonstrated how an analyst can correlate network activity with running processes.
+
+Based on the evidence examined, the DHCP client appeared consistent with expected network configuration activity.
