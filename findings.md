@@ -2,53 +2,36 @@
 
 ## Finding 1: File Permissions
 
-README.md originally had 0644 permissions.
+`README.md` originally had `0644` permissions.
 
-I changed the permissions to 0600 to restrict access to the file owner, then restored the file to 0644.
+I changed the permissions to `0600` to restrict access to the file owner, then restored the file to `0644`.
 
-Security takeaway: Linux file permissions help enforce least privilege by controlling who can read, write, or execute files.
+**Security takeaway:** Linux file permissions help enforce least privilege by controlling who can read, write, or execute files.
 
-## Finding 2: User and Group Membership
+## Finding 2: User and Privilege Analysis
 
-My Linux account has UID 1000 and GID 1000.
+I used the `id` and `groups` commands to examine my Linux account. My account has UID 1000 and GID 1000 and belongs to several groups, including the `sudo` group.
 
-Using the id and groups commands, I found that the account belongs to several groups, including the sudo group.
+Membership in the `sudo` group means the account can potentially execute permitted commands with elevated privileges.
 
-Security takeaway: Membership in privileged groups such as sudo should be reviewed because those accounts may be able to perform administrative actions.
-## Finding 3: Process Inspection
+**Security takeaway:** Privileged group membership should be reviewed because compromised privileged accounts may allow system-level changes. Administrative access should follow the principle of least privilege.
 
-I used ps aux to inspect running processes and identify which users owned them.
+## Finding 3: Root Process Analysis
 
-I initially used ps aux | grep root, but this also matched processes containing the word "root" in their command lines, such as "rootless."
+I used `ps aux` to inspect running processes and their owners.
 
-I then used ps -u root to filter specifically for processes owned by the root user.
+I initially used `ps aux | grep root`, but this also returned processes containing the word `root` in their command lines, including `rootless`. I then used `ps -U root -u root` to specifically identify processes owned by root.
 
-Security takeaway: Reviewing process ownership can help identify programs running with elevated privileges. Search results should be verified because simple text searches can produce unrelated matches.
+Observed root-owned processes included `systemd`, `systemd-journald`, `systemd-udevd`, `systemd-logind`, `dhclient`, and `agetty`.
 
-## Finding 4: Network Service Inspection
+**Security takeaway:** Processes running with elevated privileges should be identified and verified. Simple text searches can produce unrelated matches, so analysts should validate their results.
 
-I used ss -tuln to inspect listening network ports.
+## Finding 4: Network Service Analysis
 
-The scan showed UDP port 68 listening on 0.0.0.0.
+I used `ss -tuln` to inspect listening network sockets and identified UDP port 68 listening on `0.0.0.0`.
 
-I then used ps aux | grep dhclient and identified the DHCP client process running as root on the eth0 network interface.
+I then used `sudo ss -tulpn` to identify the process associated with the socket. The output showed UDP port 68 associated with `dhclient` (PID 110). Earlier process enumeration also showed PID 110 running as root.
 
-Security takeaway: Network ports should be correlated with running processes to understand why a service is listening and whether it is expected.
+The evidence was consistent with expected DHCP client network configuration activity.
 
-## User and Privilege Analysis
-
-I used the `id` command to examine my user account and group memberships. My account belongs to the `sudo` group, which means it can potentially execute commands with elevated privileges. This demonstrates why privileged accounts should follow the principle of least privilege.
-
-## Root Process Analysis
-
-I examined processes running with root privileges. I learned that searching with `grep root` can produce false or unrelated matches because it searches the entire command text. Using `ps -U root -u root` provided a cleaner list of processes actually owned by root.
-
-The root-owned processes observed included system services such as `systemd`, `systemd-journald`, `systemd-udevd`, `systemd-logind`, `dhclient`, and `agetty`.
-
-## Network Service Analysis
-
-I used `ss -tuln` to inspect listening network sockets and found UDP port 68. I then used `sudo ss -tulpn` to identify the associated process.
-
-The output showed that UDP port 68 was associated with `dhclient` (PID 110). Earlier process enumeration also showed that PID 110 was running as root. This demonstrated how an analyst can correlate network activity with running processes.
-
-Based on the evidence examined, the DHCP client appeared consistent with expected network configuration activity.
+**Security takeaway:** Listening ports should be correlated with their associated processes and privileges to determine why a service is active and whether its behavior is expected.
