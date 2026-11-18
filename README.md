@@ -75,3 +75,9 @@ Use restrictive permissions for files containing sensitive information and verif
 ## Scope & Disclaimer
 
 This is a hands-on educational review of my own Linux learning environment. Findings describe the state observed during the exercise and should not be interpreted as a security assessment of a production system.
+
+## Continue Learning with Better Hacker
+
+Explore the related free beginner lesson and hands-on practice:
+
+[Linux Security lesson](https://betterhacker.org/#linux-lesson) · [Defensive Security practice](https://betterhacker.org/#practice-defensive-security)
